@@ -9,7 +9,9 @@ public class Skill {
             "アンパンチ",
             "アンキック",
             "キック",
-            "アンドライブ"
+            "アンドライブ",
+            "はかいこうせん",
+            "ギガインパクト"
     };
 
     //スキル発動
@@ -27,6 +29,11 @@ public class Skill {
             case 4:
                 Ankick(rpg, attacker, defender);
                 break;
+            case 5:
+                Hakaikousen(rpg, attacker, defender);
+                break;
+            case 6:
+                Gigaimpact(rpg, attacker, defender);
             default:
         }
     }
@@ -40,7 +47,7 @@ public class Skill {
             attacker.SP -= sp;
             //エフェクト
             for (int i = 0; i < 20; i++) {
-                rpg.drawBattle(attacker.NAME + "のアンパンチ", i % 2 == 0);
+                rpg.drawBattle(attacker.NAME + "の", "アンパンチ", i % 2 == 0);
                 rpg.sleep(50);
             }
             //効果
@@ -64,7 +71,7 @@ public class Skill {
             attacker.SP -= sp;
             //エフェクト
             for (int i = 0; i < 20; i++) {
-                rpg.drawBattle(attacker.NAME + "のアンチョップ" , i % 2 == 0);
+                rpg.drawBattle(attacker.NAME + "の", "アンチョップ" , i % 2 == 0);
                 rpg.sleep(50);
             }
             //効果
@@ -76,6 +83,7 @@ public class Skill {
 
         } else {  //SPが足りない場合
             rpg.drawBattle("SPが足りない!");
+            rpg.init = rpg.S_COMMAND;
             rpg.waitSelect();
         }
     }
@@ -88,7 +96,7 @@ public class Skill {
             attacker.SP -= sp;
             //エフェクト
             for (int i = 0; i < 20; i++) {
-                rpg.drawBattle(attacker.NAME + "のキック!", i % 2 == 0);
+                rpg.drawBattle(attacker.NAME + "の", "キック!", i % 2 == 0);
                 rpg.sleep(50);
             }
             //効果
@@ -100,6 +108,7 @@ public class Skill {
 
         } else {  //SPが足りない場合
             rpg.drawBattle("SPが足りない!");
+            rpg.init = rpg.S_COMMAND;
             rpg.waitSelect();
         }
     }
@@ -112,7 +121,7 @@ public class Skill {
             attacker.SP -= sp;
             //エフェクト
             for (int i = 0; i < 20; i++) {
-                rpg.drawBattle(attacker.NAME + "のアンキック!", i % 2 == 0);
+                rpg.drawBattle(attacker.NAME + "の", "アンキック!", i % 2 == 0);
                 rpg.sleep(50);
             }
             //効果
@@ -124,6 +133,55 @@ public class Skill {
 
         } else {  //SPが足りない場合
             rpg.drawBattle("SPが足りない!");
+            rpg.init = rpg.S_COMMAND;
+            rpg.waitSelect();
+        }
+    }
+
+    private static void Hakaikousen (RPGView rpg, Monster attacker, Monster defender) {
+        int sp = 1;
+        if (attacker.SP - sp >= 0) {   //SPが足りたら
+            //スキル消費
+            attacker.SP -= sp;
+            //エフェクト
+            for (int i = 0; i < 20; i++) {
+                rpg.drawBattle(attacker.NAME + "の", "はかいこうせん!", i % 2 == 0);
+                rpg.sleep(50);
+            }
+            //効果
+            int damage = 1000;
+            rpg.drawBattle(defender.NAME + "に", damage + "ダメージを与えた", true);
+            rpg.waitSelect();
+            defender.HP -= damage;
+            if (defender.HP <= 0) defender.HP = 0;
+
+        } else {  //SPが足りない場合
+            rpg.drawBattle("SPが足りない!");
+            rpg.init = rpg.S_COMMAND;
+            rpg.waitSelect();
+        }
+    }
+
+    private static void Gigaimpact (RPGView rpg, Monster attacker, Monster defender) {
+        int sp = 1;
+        if (attacker.SP - sp >= 0) {   //SPが足りたら
+            //スキル消費
+            attacker.SP -= sp;
+            //エフェクト
+            for (int i = 0; i < 20; i++) {
+                rpg.drawBattle(attacker.NAME + "の", "ギガインパクト!", i % 2 == 0);
+                rpg.sleep(50);
+            }
+            //効果
+            int damage = 1000;
+            rpg.drawBattle(defender.NAME + "に", damage + "ダメージを与えた", true);
+            rpg.waitSelect();
+            defender.HP -= damage;
+            if (defender.HP <= 0) defender.HP = 0;
+
+        } else {  //SPが足りない場合
+            rpg.drawBattle("SPが足りない!");
+            rpg.init = rpg.S_COMMAND;
             rpg.waitSelect();
         }
     }

@@ -1,22 +1,24 @@
-package Monster;
+package Monster.monster;
 
-public class Darkmash extends Monster {
-    private final int maxlv = 5;
-    private String name = "ダークマッシュ";
-    private int
-            maxHP[]    = {0,30,35,40,45,50},
-            maxSP[]    = {0,10,14,18,22,26},
-            attack[]   = {0,10,14,18,22,26},
-            defence[]  = {0,10,14,18,22,26},
-            speed[]    = {0,10,14,18,22,26},
-            exp[]      = {0,4,8,12,16,20},
-            dropexp[]  = {0,4,8,12,16,20},
-            dropmoney[]  = {0,100,200,300,400,500};
-    private int
-            skill[]      = {1,3},
-            lvforskill[] = {1,3};
+import Monster.Monster;
 
-    public Darkmash(int monsternumber, int level) {
+public class Metalmash extends Monster {
+    private final int maxlv = 1;
+    private String name = "メタルマッシュ";
+    private int
+            maxHP[]    = {0,2},
+            maxSP[]    = {0,5},
+            attack[]   = {0,5},
+            defence[]  = {0,100},
+            speed[]    = {0,100},
+            exp[]      = {0,5},
+            dropexp[]  = {0,30},
+            dropmoney[]  = {0,1};
+    private int
+            skill[]      = {1},
+            lvforskill[] = {2};
+
+    public Metalmash(int monsternumber, int level) {
         MONSTERNUMBER = monsternumber;
         NAME = name;
         MAXLV = maxlv;
@@ -48,6 +50,7 @@ public class Darkmash extends Monster {
             DROPEXP[i] = dropexp[i];
             DROPMAONEY[i] = dropmoney[i];
         }
+
         for (int i = 0; i < skill.length; i++) {
             SKILL[i] = skill[i];
             LVFORSKILL[i] = lvforskill[i];

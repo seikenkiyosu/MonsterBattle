@@ -67,6 +67,7 @@ public class Graphics {
         canvas.drawRect(new Rect(x, y, x + w, y + h), paint);
     }
 
+    //マップ上のフィールド描画
     public void drawBitmap(Bitmap bitmap, int x, int y) {
         if (canvas == null) return;
         int w = bitmap.getWidth();
@@ -76,6 +77,7 @@ public class Graphics {
         canvas.drawBitmap(bitmap, src, dst, null);
     }
 
+    //バトル中のモンスター描画
     public void drawMonsterInBattle(Bitmap bitmap, int x, int y) {
         if (canvas == null) return;
         int w = bitmap.getWidth();
@@ -85,6 +87,7 @@ public class Graphics {
         canvas.drawBitmap(bitmap, src, dst, null);
     }
 
+    //マップ上にモンスターを描画
     public void drawMonsterInMap(Bitmap bitmap, int x, int y) {
         if (canvas == null) return;
         int w = bitmap.getWidth();
@@ -94,6 +97,7 @@ public class Graphics {
         canvas.drawBitmap(bitmap, src, dst, null);
     }
 
+    //(x, y)にテキストを描画
     public void drawText(String string, int x, int y) {
         if(canvas == null) return;
         canvas.drawText(string, x, y, paint);

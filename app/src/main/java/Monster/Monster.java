@@ -1,5 +1,10 @@
 package Monster;
 
+import Monster.monster.Darkmash;
+import Monster.monster.Mash;
+import Monster.monster.Metalmash;
+import Monster.monster.Togemash;
+
 public class Monster {
     //全モンスターの数
     public static final int MONSTERNUM = 4;

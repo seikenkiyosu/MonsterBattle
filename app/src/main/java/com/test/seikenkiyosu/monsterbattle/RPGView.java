@@ -18,14 +18,15 @@ import Monster.*;
 
 public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
     //シーン定数
-    private final static int
+    public final static int
         S_START   = 0,
         S_MAP     = 1,
         S_APPEAR  = 2,
         S_COMMAND = 3,
         S_ATTACK  = 4,
-        S_DEFENCE = 5,
-        S_ESCAPE  = 6;
+        S_SKILL   = 5,
+        S_DEFENCE = 6,
+        S_ESCAPE  = 7;
 
     //the size of display
     private final static int
@@ -43,13 +44,15 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         KEY_2      = 5,
         KEY_3      = 6,
         KEY_4      = 7,
-        KEY_SELECT = 8;
+        KEY_REDO   = 8,
+        KEY_SELECT = 9;
 
     private boolean isdefence = false;
     private boolean isskill = false;
+    private boolean isstatushide = false;
 
     //味方モンスター
-    static Monster party[] = new Monster[3];  //味方
+    static Monster party[] = new Monster[4];  //味方
     private int stage[];    //ステージ1-1
     private int
         positionX,
@@ -65,7 +68,7 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
     private SurfaceHolder holder;
     private Graphics      g;
     private Thread        thread;
-    private int           init = S_START;
+    public int            init = S_START;
     public int            scene;
     public int            key;
     private Bitmap        bmparroykey;  //十字キーのためのビットマップ
@@ -79,7 +82,10 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
     public RPGView(Activity activity) {
         super(activity);
         //パーティ読み込み
-        party[0] = Monster.MonsterOutput(2, 1);
+        party[0] = Monster.MonsterOutput(3, 1);
+        party[1] = Monster.MonsterOutput(1, 1);
+        party[2] = Monster.MonsterOutput(2, 1);
+        party[3] = Monster.MonsterOutput(1, 3);
 
         //最初のステージ
         stage = new int[2];
@@ -208,7 +214,7 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                             enemy = new Monster[1];
                             int r = rand(100);
                             if (r < 75) {
-                                enemy[0] = Monster.MonsterOutput(4, 1);
+                                enemy[0] = Monster.MonsterOutput(1, 1);
                             } else {
                                 enemy[0] = Monster.MonsterOutput(2, 1);
                             }
@@ -236,7 +242,7 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                         }
                         g.drawMonsterInMap(bmpmonster[party[0].MONSTERNUMBER], W/2-40, H/2-40);
                         g.drawBitmap(bmparroykey, W/2-40+80*(-4), H/2-40+80);       //マップ上に十字キー描画
-                        drawStatus();
+                        mapStatus();
                         g.unlock();
 
                     }
@@ -276,10 +282,20 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                     drawBattle("攻撃", "防御", "スキル", "逃げる");
                     key = KEY_NONE;
                     while (init == -1) {
-                        if (key == KEY_1) init = S_ATTACK;
-                        else if (key == KEY_2) { isdefence = true; init = S_DEFENCE; }
-                        else if (key == KEY_3) { isskill = true; init = S_ATTACK; }
-                        else if (key == KEY_4) init = S_ESCAPE;
+                        if (key == KEY_1) {
+                            init = S_ATTACK;
+                        }
+                        else if (key == KEY_2) {
+                            isdefence = true;
+                            init = S_DEFENCE;
+                        }
+                        else if (key == KEY_3) {
+                            isskill = true;
+                            init = S_ATTACK;
+                        }
+                        else if (key == KEY_4) {
+                            init = S_ESCAPE;
+                        }
                         sleep(100);
                     }
                     break;
@@ -326,22 +342,29 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                         waitSelect();
                         int choice = -1;
                         key = KEY_NONE;
-                        scene = S_COMMAND;
+                        scene = S_SKILL;
                         while (choice == -1) {
                                  if (key == KEY_1 && party[0].SKILL[0] != 0) choice = party[0].SKILL[0];
                             else if (key == KEY_2 && party[0].SKILL[1] != 0) choice = party[0].SKILL[1];
                             else if (key == KEY_3 && party[0].SKILL[2] != 0) choice = party[0].SKILL[2];
                             else if (key == KEY_4 && party[0].SKILL[3] != 0) choice = party[0].SKILL[3];
+                            else if (key == KEY_REDO) {
+                                     init = S_COMMAND;
+                                     break;
+                                 }
                             sleep(100);
                         }
-                        scene = S_ATTACK;
-
-                        Skill.Skillcast(this, choice, party[0], enemy[0]);
+                        if (key != KEY_REDO) {  //次のコマンド
+                            scene = S_ATTACK;   //
+                            Skill.Skillcast(this, choice, party[0], enemy[0]);
+                        }
 
                         isskill = false;
                     }
 
-                    init = S_DEFENCE;
+                    if (init != S_COMMAND) {    //SP不足はコマンドからやり直し
+                        init = S_DEFENCE;
+                    }
                     //victory
                     if (enemy[0].HP == 0) {
                         //message
@@ -476,7 +499,7 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.lock();
         g.setColor(color);
         g.fillRect(0, 0, W, H);
-        drawStatus();
+        battleStatus();
         if (visible) {
             g.drawMonsterInBattle(bmpmonster[enemy[0].MONSTERNUMBER],
                     W / 2 - (bmpmonster[enemy[0].MONSTERNUMBER].getWidth()) / 2,
@@ -498,7 +521,7 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.lock();
         g.setColor(color);
         g.fillRect(0, 0, W, H);
-        drawStatus();
+        battleStatus();
         if (visible) {
             g.drawMonsterInBattle(bmpmonster[enemy[0].MONSTERNUMBER]
                     , W / 2 - (bmpmonster[enemy[0].MONSTERNUMBER].getWidth()) / 2
@@ -521,7 +544,7 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.lock();
         g.setColor(color);
         g.fillRect(0, 0, W, H);
-        drawStatus();
+        battleStatus();
         g.drawMonsterInBattle(bmpmonster[enemy[0].MONSTERNUMBER]
                 , W / 2 - (bmpmonster[enemy[0].MONSTERNUMBER].getWidth()) / 2
                 , H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() + 80);
@@ -535,7 +558,7 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
 
         g.drawText(message1, (W - 500) / 2 + 50, 370 - (int) g.getFontMetrics().top);
         g.drawText(message2, (W - 500) / 2 + 270, 370 - (int) g.getFontMetrics().top);
-        g.drawText(message3, (W - 500) / 2 + 50, 370 - (int) g.getFontMetrics().top*2 +10);
+        g.drawText(message3, (W - 500) / 2 + 50, 370 - (int) g.getFontMetrics().top * 2 + 10);
         g.drawText(message4, (W - 500) / 2 + 270, 370 - (int) g.getFontMetrics().top*2 +10);
         g.unlock();
     }
@@ -545,7 +568,7 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.lock();
         g.setColor(color);
         g.fillRect(0, 0, W, H);
-        drawStatus();
+        battleStatus();
         g.drawMonsterInBattle(bmpmonster[enemy[0].MONSTERNUMBER]
                 , W / 2 - (bmpmonster[enemy[0].MONSTERNUMBER].getWidth()) / 2
                 , H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() + 80);
@@ -558,26 +581,59 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.setTextSize(26);
 
         g.drawText(message1, (W - 500) / 2 + 50, 370 - (int) g.getFontMetrics().top);
-        g.drawText(message2, (W - 500) / 2 + 270, 370 - (int) g.getFontMetrics().top);
-        g.drawText(message3, (W - 500) / 2 + 50, 370 - (int) g.getFontMetrics().top*2 +10);
-        g.drawText(message4, (W - 500) / 2 + 270, 370 - (int) g.getFontMetrics().top*2 +10);
+        g.drawText(message2, (W - 500) / 2 + 240, 370 - (int) g.getFontMetrics().top);
+        g.drawText(message3, (W - 500) / 2 + 50, 370 - (int) g.getFontMetrics().top* 2 + 10);
+        g.drawText(message4, (W - 500) / 2 + 240, 370 - (int) g.getFontMetrics().top*2 +10);
+
+        g.setTextSize(20);
+        g.drawText("戻る", W/2+200, 370 - (int) g.getFontMetrics().top*2 +30);
+
         g.unlock();
     }
 
-    //show status
-    public void drawStatus() {
-        int color = (party[0].HP != 0) ? Color.rgb(231, 232, 226) : Color.rgb(255, 0, 0);    //シルバーグレーor赤
-        g.setColor(color);
-        g.fillRect(50, 10, 200, 90);     //味方のステータス表示
+
+    public void mapStatus() {
+        g.setTextSize(18);
+        if (!isstatushide) {
+            for (int i = 0; i < party.length; i++) {
+                int color = (party[i].HP != 0) ? Color.rgb(157, 204, 224) : Color.rgb(255, 0, 0);    //水色or赤
+                g.setColor(color);
+                g.fillRect(W - 195, 60 + 90 * i, 185, 85);     //味方のステータス表示
+                g.setColor(Color.rgb(0, 0, 0));   //黒
+                g.drawText(party[i].NAME + " Lv." + party[i].LV, W - 185, 85 + 90 * i);
+                g.drawText("HP  " + party[i].HP + "/" + party[i].MAXHP[party[i].LV], W - 180, 85 + 90 * i - (int) g.getFontMetrics().top + 5);
+                g.drawText("SP  " + party[i].SP + "/" + party[i].MAXSP[party[i].LV], W - 180, 85 + 90 * i - (int) g.getFontMetrics().top * 2 + 8);
+            }
+            //tool to hide status
+            g.setColor(Color.rgb(231, 232, 226));
+            g.fillRect(W - 130, H - 50, 120, 40);
+            g.setColor(Color.rgb(0, 0, 0));
+            g.drawText("非表示", W - 100, H - 25);
+        }
+        else {
+            g.setColor(Color.rgb(231, 232, 226));
+            g.fillRect(W - 130, H - 50, 120, 40);
+            g.setColor(Color.rgb(0, 0, 0));
+            g.drawText("表示", W - 100, H - 25);
+        }
+        g.setColor(Color.rgb(231, 232, 226));
         g.fillRect(W - 130, 10, 120, 40);   //金表示
+        g.setColor(Color.rgb(0, 0, 0));
+        g.drawText(Money + "G", W - 130 + 10, 15 - (int) g.getFontMetrics().top);
+    }
 
-        g.setColor(Color.rgb(0, 0, 0));   //白
+    public void battleStatus() {
+        for (int i = 0; i < party.length; i++) {
+            int color = (party[i].HP != 0) ? Color.rgb(231, 232, 226) : Color.rgb(255, 0, 0);    //淡黄色or赤
+            g.setColor(color);
+            g.fillRect(20+186*i, 15, 185, 80);     //味方のステータス表示
 
-        g.setTextSize(20);
-        g.drawText(party[0].NAME + " Lv." + party[0].LV, 60, 15 - (int) g.getFontMetrics().top);
-        g.drawText("HP  " + party[0].HP + "/" + party[0].MAXHP[party[0].LV], 60, 15 - (int) g.getFontMetrics().top*2+5);
-        g.drawText("SP  " + party[0].SP + "/" + party[0].MAXSP[party[0].LV], 60, 15 - (int) g.getFontMetrics().top*3+8);
-        g.drawText(Money + "G", W-130+10, 15 - (int)g.getFontMetrics().top);
+            g.setColor(Color.rgb(0, 0, 0));   //黒
+            g.setTextSize(18);
+            g.drawText(party[i].NAME + " Lv." + party[i].LV, 30+186*i, 20 - (int) g.getFontMetrics().top);
+            g.drawText("HP  " + party[i].HP + "/" + party[i].MAXHP[party[i].LV], 30+186*i, 20 - (int) g.getFontMetrics().top * 2 + 5);
+            g.drawText("SP  " + party[i].SP + "/" + party[i].MAXSP[party[i].LV], 30+186*i, 20 - (int) g.getFontMetrics().top * 3 + 8);
+        }
     }
 
 
@@ -596,8 +652,12 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                         key = (touchY - (H / 2 - 40 + 80 * 2) < 0) ? KEY_UP : KEY_DOWN;
                     }
                 }
+                //ステータス表示・非表示
+                if (W-130 < touchX && touchX < W - 10 && H - 50 < touchY && touchY < H - 10) {
+                    isstatushide = !isstatushide;
+                }
             }
-            else if (scene == S_APPEAR || scene == S_ATTACK || scene == S_DEFENCE || scene == S_ESCAPE) {
+            else if (scene == S_APPEAR ||  scene == S_ATTACK || scene == S_DEFENCE || scene == S_ESCAPE) {
                 key = KEY_SELECT;
             }
             else if (scene == S_COMMAND) {
@@ -612,6 +672,23 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                 }
                 else if (W/2 < touchX && touchX < W/2+250 && H-70 < touchY && touchY < H) {
                     key = KEY_4;
+                }
+            }
+            else if (scene == S_SKILL) {
+                if (W/2-250 < touchX && touchX < W/2-25 && H-190 < touchY && touchY < H-70) {
+                    key = KEY_1;
+                }
+                else if (W/2-25 < touchX && touchX < W/2+200 && H-190 < touchY && touchY < H-70) {
+                    key = KEY_2;
+                }
+                else if (W/2-250 < touchX && touchX < W/2-25 && H-70 < touchY && touchY < H-10) {
+                    key = KEY_3;
+                }
+                else if (W/2-25 < touchX && touchX < W/2+200 && H-70 < touchY && touchY < H-10) {
+                    key = KEY_4;
+                }
+                else if (W/2+200 < touchX && touchX < W/2+250 && H-50 < touchY && touchY < H-10) {
+                    key = KEY_REDO;
                 }
             }
         }

@@ -1,22 +1,24 @@
-package Monster;
+package Monster.monster;
 
-public class Togemash extends Monster{
+import Monster.Monster;
+
+public class Darkmash extends Monster {
     private final int maxlv = 5;
-    private final String name = "トゲマッシュ";
+    private String name = "ダークマッシュ";
     private int
-            maxHP[]    = {0,20,24,28,32,36},
-            maxSP[]    = {0,6,9,12,15,18},
-            attack[]   = {0,6,9,12,15,18},
-            defence[]  = {0,6,9,12,15,18},
-            speed[]    = {0,6,9,12,15,18},
-            exp[]      = {0,2,5,8,12,15},
-            dropexp[]  = {0,2,5,8,12,15},
-            dropmoney[]  = {0,50,100,150,200,250};
+            maxHP[]    = {0,30,35,40,45,50},
+            maxSP[]    = {0,10,14,18,22,26},
+            attack[]   = {0,10,14,18,22,26},
+            defence[]  = {0,10,14,18,22,26},
+            speed[]    = {0,10,14,18,22,26},
+            exp[]      = {0,4,8,12,16,20},
+            dropexp[]  = {0,4,8,12,16,20},
+            dropmoney[]  = {0,100,200,300,400,500};
     private int
-            skill[]      = {3},
-            lvforskill[] = {0};
+            skill[]      = {1,3},
+            lvforskill[] = {1,3};
 
-    public Togemash(int monsternumber, int level) {
+    public Darkmash(int monsternumber, int level) {
         MONSTERNUMBER = monsternumber;
         NAME = name;
         MAXLV = maxlv;
@@ -30,8 +32,14 @@ public class Togemash extends Monster{
         EXP = new int[MAXLV+1];
         DROPEXP = new int[MAXLV+1];
         DROPMAONEY = new int[MAXLV+1];
-        SKILL = new int[MAXLV+1];
-        LVFORSKILL = new int[MAXLV+1];
+        if (skill.length < 4) {
+            SKILL = new int[4];
+            LVFORSKILL = new int[4];
+        }
+        else {
+            SKILL = new int[MAXLV + 1];
+            LVFORSKILL = new int[MAXLV + 1];
+        }
         for (int i = 0; i <= MAXLV; i++) {
             MAXHP[i] = maxHP[i];
             MAXSP[i] = maxSP[i];

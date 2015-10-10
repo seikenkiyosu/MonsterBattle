@@ -1,4 +1,6 @@
-package Monster;
+package Monster.monster;
+
+import Monster.Monster;
 
 public class Mash extends Monster {
     private final int maxlv = 5;
