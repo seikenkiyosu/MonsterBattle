@@ -19,14 +19,15 @@ import Monster.*;
 public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
     //シーン定数
     public final static int
-        S_START   = 0,
-        S_MAP     = 1,
-        S_APPEAR  = 2,
-        S_COMMAND = 3,
-        S_ATTACK  = 4,
-        S_SKILL   = 5,
-        S_DEFENCE = 6,
-        S_ESCAPE  = 7;
+        S_START      = 0,
+        S_MAP        = 1,
+        S_APPEAR     = 2,
+        S_TURNCHANGE = 3,
+        S_COMMAND    = 4,
+        S_ATTACK     = 5,
+        S_SKILL      = 6,
+        S_DEFENCE    = 7,
+        S_ESCAPE     = 8;
 
     //the size of display
     private final static int
@@ -47,19 +48,27 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         KEY_REDO   = 8,
         KEY_SELECT = 9;
 
-    private boolean isdefence = false;
+    private boolean isdefence[];
     private boolean isskill = false;
     private boolean isstatushide = false;
+    private boolean isinbattle = false;
+
+    private int battleturn = 0;
+    int order[];
+    int speed[];
+
+    private int stage[];
 
     //味方モンスター
     static Monster party[] = new Monster[4];  //味方
-    private int stage[];    //ステージ1-1
+    private int partytarget;    //アクションを起こしている味方
     private int
         positionX,
         positionY;
 
     //敵モンスター
-    static Monster enemy[] = new Monster[3];  //敵
+    static Monster enemy[] = new Monster[4];  //アクションを起こしている敵
+    private int enemytarget;
 
     //マップ
     private int MAP[][];
@@ -82,9 +91,9 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
     public RPGView(Activity activity) {
         super(activity);
         //パーティ読み込み
-        party[0] = Monster.MonsterOutput(3, 1);
+        party[0] = Monster.MonsterOutput(1, 1);
         party[1] = Monster.MonsterOutput(1, 1);
-        party[2] = Monster.MonsterOutput(2, 1);
+        party[2] = Monster.MonsterOutput(1, 1);
         party[3] = Monster.MonsterOutput(1, 3);
 
         //最初のステージ
@@ -210,18 +219,16 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
 
                     //マップ上のイベント
                     if (flag) {
-                        if (MAP[positionY][positionX] == 0 && rand(100) < 10) {
-                            enemy = new Monster[1];
+                        if (MAP[positionY][positionX] == 0 && rand(100) < 10) {     //モンスター出現
                             int r = rand(100);
-                            if (r < 75) {
-                                enemy[0] = Monster.MonsterOutput(1, 1);
-                            } else {
-                                enemy[0] = Monster.MonsterOutput(2, 1);
-                            }
                             init = S_APPEAR;
                         } else if (MAP[positionY][positionX] == 1) {    //宿屋
-                            party[0].HP = party[0].MAXHP[party[0].LV];
-                            party[0].SP = party[0].MAXSP[party[0].LV];
+                            for (int i = 0; i < party.length; i++) {
+                                if (party[i] != null) {
+                                    party[i].HP = party[i].MAXHP[party[i].LV];
+                                    party[i].SP = party[i].MAXSP[party[i].LV];
+                                }
+                            }
                         } else if (MAP[positionY][positionX] == 2) {    //ボス出現
                             enemy[0] = Monster.MonsterOutput(3, 1);
                             init = S_APPEAR;
@@ -250,7 +257,14 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
 
                 //モンスター出現
                 case S_APPEAR:
+                    //なにが出てきたか
+                    enemy = new Monster[3];
+                    enemy[0] = Monster.MonsterOutput(3, 1);
+                    enemy[1] = Monster.MonsterOutput(2, 1);
+                    enemy[2] = Monster.MonsterOutput(1, 1);
+
                     //戦闘前のフラッシュ
+                    isinbattle = true;  //バトルスタート
                     sleep(300);
                     for (int i = 0; i <= 6; i++) {
                         g.lock();
@@ -265,29 +279,93 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                     }
 
                     //message
-                    drawBattle(enemy[0].NAME + "が現れた");
+                    drawBattle(enemy[0].NAME + "たちが現れた");
                     waitSelect();
 
-                    //スピード比較
-                    if (party[0].SPEED[party[0].LV] >= enemy[0].SPEED[enemy[0].LV]) {
-                        init = S_COMMAND;
+                    //防御のための変数用意
+                    isdefence = new boolean[party.length];
+                    for (int i = 0; i < party.length; i++){ isdefence[i] = false; }
+
+                    //はじめの設定(forすばやさ)
+                    battleturn = 0;
+                    speed = new int[party.length+enemy.length];
+                    order = new int[party.length+enemy.length];
+                    for (int i = 0; i < party.length+enemy.length; i++) {
+                        if (i < party.length) {
+                            speed[i] = party[i].SPEED[party[i].LV];
+                            order[i] = i;
+                        }
+                        else {
+                            speed[i] = enemy[i-party.length].SPEED[enemy[i-party.length].LV];
+                            order[i] = 10+(i-4);
+                        }
+                    }
+
+                    //ソート(順番決め)
+                    for (int i = 0; i < party.length+enemy.length; i++) {
+                        int temp;
+                        for (int j = party.length+enemy.length-1; j > i; j--) {
+                            if (speed[j-1] < speed[j]) {
+                                temp = speed[j-1];
+                                speed[j-1] = speed[j];
+                                speed[j] = temp;
+
+                                temp = order[j-1];
+                                order[j-1] = order[j];
+                                order[j] = temp;
+                            }
+                        }
+                    }
+
+
+                    init = S_TURNCHANGE;
+                    break;
+
+                //誰のターンかを決める（バトル中）
+                case S_TURNCHANGE :
+                    battleturn %= party.length+enemy.length;
+                    if (isinbattle) {
+                        while (true) {
+                            if (order[battleturn] < 10) {   //味方
+                                partytarget = order[battleturn];
+                                init = S_COMMAND;
+                                if (party[partytarget].HP > 0) {
+                                    isdefence[partytarget] = false;
+                                    battleturn++;
+                                    break;
+                                }
+                            }
+                            else {
+                                enemytarget = order[battleturn] - 10;
+                                init = S_DEFENCE;
+                                if (enemy[enemytarget].HP > 0) {
+                                    while (true) {
+                                        partytarget = rand(party.length);
+                                        if (party[partytarget].HP > 0) break;
+                                    }
+                                    battleturn++;
+                                    break;
+                                }
+                            }
+                            battleturn++;
+                        }
                     }
                     else {
-                        init = S_DEFENCE;
+                        init = S_MAP;
                     }
                     break;
 
                 //command
                 case S_COMMAND :
-                    drawBattle("攻撃", "防御", "スキル", "逃げる");
+                    drawBattle("攻撃", "防御", "スキル", "逃げる", partytarget);
                     key = KEY_NONE;
                     while (init == -1) {
                         if (key == KEY_1) {
                             init = S_ATTACK;
                         }
                         else if (key == KEY_2) {
-                            isdefence = true;
-                            init = S_DEFENCE;
+                            isdefence[partytarget] = true;
+                            init = S_TURNCHANGE;
                         }
                         else if (key == KEY_3) {
                             isskill = true;
@@ -303,24 +381,24 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                 //attack process
                 case S_ATTACK:
                     if (!isskill) {
-                        drawBattle(party[0].NAME + "の攻撃!");
+                        drawBattle(party[partytarget].NAME + "の攻撃!");
                         waitSelect();
                         if (rand(100) <= 90) {
                             //flush
                             for (int i = 0; i < 10; i++) {
-                                drawBattle(party[0].NAME + "の攻撃!", i % 2 == 0);
+                                drawBattle(party[partytarget].NAME + "の攻撃!", i % 2 == 0);
                                 sleep(100);
                             }
 
                             //attack calculation
-                            int damage = party[0].ATTACK[party[0].LV] - enemy[0].DEFENCE[enemy[0].LV] + rand(10);
+                            int damage = party[partytarget].ATTACK[party[partytarget].LV] - enemy[enemytarget].DEFENCE[enemy[enemytarget].LV] + rand(10);
                             if (damage <= 1) damage = 1;
 
                             //会心の一撃
                             if (rand(100) <= 8) {
                                 drawBattle("急所に当たった!");
                                 waitSelect();
-                                damage += enemy[0].DEFENCE[enemy[0].LV];
+                                damage += enemy[enemytarget].DEFENCE[enemy[enemytarget].LV];
                                 damage *= 2;
                             }
 
@@ -329,86 +407,94 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                             waitSelect();
 
                             //calculate HP
-                            enemy[0].HP -= damage;
-                            if (enemy[0].HP <= 0) enemy[0].HP = 0;
+                            enemy[enemytarget].HP -= damage;
+                            if (enemy[enemytarget].HP <= 0) enemy[enemytarget].HP = 0;
                         } else {
-                            drawBattle(enemy[0].NAME + "は回避した");
+                            drawBattle(enemy[enemytarget].NAME + "は回避した");
                             waitSelect();
                         }
                     }
                     //スキルフェーズ
                     else {
-                        showSkill(Skill.NAME[party[0].SKILL[0]], Skill.NAME[party[0].SKILL[1]], Skill.NAME[party[0].SKILL[2]], Skill.NAME[party[0].SKILL[3]]);
+                        showSkill(Skill.NAME[party[partytarget].SKILL[0]], Skill.NAME[party[partytarget].SKILL[1]], Skill.NAME[party[partytarget].SKILL[2]], Skill.NAME[party[partytarget].SKILL[3]], partytarget);
                         waitSelect();
                         int choice = -1;
                         key = KEY_NONE;
                         scene = S_SKILL;
                         while (choice == -1) {
-                                 if (key == KEY_1 && party[0].SKILL[0] != 0) choice = party[0].SKILL[0];
-                            else if (key == KEY_2 && party[0].SKILL[1] != 0) choice = party[0].SKILL[1];
-                            else if (key == KEY_3 && party[0].SKILL[2] != 0) choice = party[0].SKILL[2];
-                            else if (key == KEY_4 && party[0].SKILL[3] != 0) choice = party[0].SKILL[3];
+                                 if (key == KEY_1 && party[partytarget].SKILL[0] != 0) choice = party[partytarget].SKILL[0];
+                            else if (key == KEY_2 && party[partytarget].SKILL[1] != 0) choice = party[partytarget].SKILL[1];
+                            else if (key == KEY_3 && party[partytarget].SKILL[2] != 0) choice = party[partytarget].SKILL[2];
+                            else if (key == KEY_4 && party[partytarget].SKILL[3] != 0) choice = party[partytarget].SKILL[3];
                             else if (key == KEY_REDO) {
-                                     init = S_COMMAND;
+                                     init = S_COMMAND;          //SP不足はコマンドからやり直し
                                      break;
                                  }
                             sleep(100);
                         }
                         if (key != KEY_REDO) {  //次のコマンド
-                            scene = S_ATTACK;   //
-                            Skill.Skillcast(this, choice, party[0], enemy[0]);
+                            scene = S_ATTACK;   //もとに戻す
+                            Skill.Skillcast(this, choice, party[partytarget], enemy[enemytarget]);
                         }
-
                         isskill = false;
                     }
 
-                    if (init != S_COMMAND) {    //SP不足はコマンドからやり直し
-                        init = S_DEFENCE;
+                    if (init != S_COMMAND) {    //戻るしてなかったら
+                        init = S_TURNCHANGE;
                     }
                     //victory
-                    if (enemy[0].HP == 0) {
+                    boolean isvictory = true;
+                    for (int i = 0; i < enemy.length; i++) if (enemy[i].HP != 0) isvictory = false;
+                    if (isvictory) {
+                        isinbattle = false; //バトル終了
                         //message
-                        drawBattle(enemy[0].NAME + "を倒した", false);
+                        drawBattle("モンスターたちを倒した", false);
                         waitSelect();
-                        if (party[0].LV != party[0].MAXLV) {
-                            drawBattle(enemy[0].DROPEXP[enemy[0].LV] + " 経験値を手に入れた", false);
-                            waitSelect();
+                        int exp = 0;
+                        for (int i = 0; i < enemy.length; i++) exp += enemy[i].DROPEXP[enemy[i].LV];
+                        drawBattle(exp + " 経験値を手に入れた", false);
+                        waitSelect();
 
-                            //calculate EXP
-                            party[0].GETEXP += enemy[0].DROPEXP[enemy[0].LV];
-                            while (party[0].EXP[party[0].LV] <= party[0].GETEXP && party[0].LV != party[0].MAXLV) {
-                                party[0].GETEXP -= party[0].EXP[party[0].LV];
-                                party[0].LV++;
-                                party[0].HP = party[0].MAXHP[party[0].LV] * party[0].HP / party[0].MAXHP[party[0].LV - 1];    //体力回復(レベルアップ前のHPゲージを保つ計算)
-                                party[0].SP = party[0].MAXSP[party[0].LV] * party[0].SP / party[0].MAXSP[party[0].LV - 1];    //SP回復
-                                drawBattle(party[0].NAME + "は", "LV " + party[0].LV + " にアップした", false);
-                                waitSelect();
-                            }
+                        for (int i = 0; i < party.length; i++) {
+                            if (party[i].LV != party[i].MAXLV) {    //レベルマックスなら無視
+                                //calculate EXP
+                                party[i].GETEXP += exp;
+                                while (party[i].EXP[party[i].LV] <= party[i].GETEXP && party[i].LV != party[i].MAXLV) {
+                                    party[i].GETEXP -= party[i].EXP[party[i].LV];
+                                    party[i].LV++;
+                                    party[i].HP = party[i].MAXHP[party[i].LV] * party[i].HP / party[i].MAXHP[party[i].LV - 1];    //体力回復(レベルアップ前のHPゲージを保つ計算)
+                                    party[i].SP = party[i].MAXSP[party[i].LV] * party[i].SP / party[i].MAXSP[party[i].LV - 1];    //SP回復
+                                    drawBattle(party[i].NAME + "は", "LV " + party[i].LV + " にアップした", false);
+                                    waitSelect();
+                                }
 
-                            if (party[0].LV != party[0].MAXLV) {
-                                drawBattle("次のレベルアップまで  ", ("あと ") + (party[0].EXP[party[0].LV] - party[0].GETEXP) + (" 経験値"), false);
-                                waitSelect();
-                            }
-                            else {
-                                drawBattle(party[0].NAME, "はレベル最大に到達した", false);
-                                waitSelect();
+//                            if (party[0].LV != party[0].MAXLV) {
+//                                drawBattle("次のレベルアップまで  ", ("あと ") + (party[0].EXP[party[0].LV] - party[0].GETEXP) + (" 経験値"), false);
+//                                waitSelect();
+//                            }
+                                if (party[i].LV == party[i].MAXLV) {
+                                    drawBattle(party[i].NAME, "はレベル最大に到達した", false);
+                                    waitSelect();
+                                }
                             }
                         }
 
                         //ドロップマネー
-                        drawBattle(enemy[0].DROPMAONEY[enemy[0].LV] + "G を手に入れた", false);
-                        Money += enemy[0].DROPMAONEY[enemy[0].LV];
+                        int dropmoney = 0;
+                        for (int i = 0; i < enemy.length; i++) dropmoney += enemy[i].DROPMAONEY[enemy[i].LV];
+                        drawBattle(dropmoney + "G を手に入れた", false);
+                        Money += dropmoney;
                         waitSelect();
 
-                        init = S_MAP;
+                        init = S_MAP;   //マップに遷移
                     }
                     break;
 
                 //防御
                 case S_DEFENCE:
                     //message
-                    if (enemy[0].ESCAPEPERCENT <= rand(100)) {
-                        drawBattle(enemy[0].NAME + "の攻撃");
+                    if (enemy[enemytarget].ESCAPEPERCENT <= rand(100)) {
+                        drawBattle(enemy[enemytarget].NAME + "の攻撃");
                         waitSelect();
                         if (rand(100) <= 90) {
                             //flush
@@ -419,65 +505,72 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                                     g.fillRect(0, 0, W, H);
                                     g.unlock();
                                 } else {
-                                    drawBattle(enemy[0].NAME + "の攻撃");
+                                    drawBattle(enemy[enemytarget].NAME + "の攻撃");
                                 }
                                 sleep(100);
                             }
                             //calculate for defence
-                            int damage = enemy[0].ATTACK[enemy[0].LV] - party[0].DEFENCE[party[0].LV] + rand(10);
+                            int damage = enemy[enemytarget].ATTACK[enemy[enemytarget].LV] - party[partytarget].DEFENCE[party[partytarget].LV] + rand(10);
                             if (damage <= 1) damage = 1;
 
                             //会心の一撃
                             if (rand(100) <= 8) {
                                 drawBattle("痛恨の一撃!");
                                 waitSelect();
-                                damage += party[0].DEFENCE[party[0].LV];
+                                damage += party[partytarget].DEFENCE[party[partytarget].LV];
                                 damage *= 2;
                             }
 
-                            if (isdefence) {    //防御をしていたら
+                            if (isdefence[partytarget]) {    //防御をしていたら
                                 damage /= 3;
-                                isdefence = false;
                             }
 
                             //message
-                            drawBattle(damage + "ダメージを受けた");
+                            drawBattle(party[partytarget].NAME + "は", damage + "ダメージを受けた", true);
                             waitSelect();
 
                             //calculate HP
-                            party[0].HP -= damage;
-                            if (party[0].HP <= 0) party[0].HP = 0;
+                            party[partytarget].HP -= damage;
+                            if (party[partytarget].HP <= 0) party[partytarget].HP = 0;
                         } else {
-                            drawBattle(party[0].NAME + "は回避した");
+                            drawBattle(party[partytarget].NAME + "は回避した");
                             waitSelect();
                         }
-                        //Lose
-                        init = S_COMMAND;
-                        if (party[0].HP == 0) {
+                        init = S_TURNCHANGE;
+
+                        //全滅
+                        boolean isdestruction = true;
+                        for (int i = 0; i < party.length; i++) if (party[i].HP != 0) isdestruction = false;
+                        if (isdestruction) {
                             drawBattle("全滅してしまった");
                             waitSelect();
                             init = S_START;
+                            isinbattle = false;
                         }
                     }
                     else {
-                        drawBattle(enemy[0].NAME + "は逃げ出した", false);
+                        drawBattle(enemy[enemytarget].NAME + "は逃げ出した", false);
                         waitSelect();
-                        init = S_START;
+                        init = S_MAP;
+                        isinbattle = false;
                     }
                     break;
 
                //escape
                 case S_ESCAPE :
                     //message
-                    drawBattle(party[0].NAME + "逃げ出した");
+                    drawBattle(party[0].NAME + "たちは逃げ出した");
                     waitSelect();
 
                     //calculation for escape
-                    init = S_MAP;
                     if (rand(100) <= 60) {
-                        drawBattle(enemy[0].NAME+"は回りこんだ");
+                        drawBattle(enemy[0].NAME+"たちは回りこんだ");
                         waitSelect();
                         init = S_DEFENCE;
+                    }
+                    else  {
+                        init = S_TURNCHANGE;
+                        isinbattle = false;
                     }
                     break;
             }
@@ -490,12 +583,16 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
 
 
     public void drawBattle(String message) {
-        drawBattle(message, enemy[0].HP >= 0);
+        boolean isdestruction = true;
+        for (int i = 0; i < enemy.length; i++) if (enemy[i].HP != 0) isdestruction = false;
+        drawBattle(message, !isdestruction);
     }
 
 
     public void drawBattle(String message, boolean visible) {
-        int color = (party[0].HP != 0) ? Color.rgb(0, 0, 0) : Color.rgb(255, 0, 0);
+        boolean isdestruction = true;
+        for (int i = 0; i < party.length; i++) if (party[i].HP != 0) isdestruction = false;
+        int color = !isdestruction ? Color.rgb(0, 0, 0) : Color.rgb(255, 0, 0);
         g.lock();
         g.setColor(color);
         g.fillRect(0, 0, W, H);
@@ -517,7 +614,9 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
     }
 
     public void drawBattle(String message1, String message2, boolean visible) {
-        int color = (party[0].HP != 0) ? Color.rgb(0, 0, 0) : Color.rgb(255, 0, 0);
+        boolean isdestruction = true;
+        for (int i = 0; i < party.length; i++) if (party[i].HP != 0) isdestruction = false;
+        int color = !isdestruction ? Color.rgb(0, 0, 0) : Color.rgb(255, 0, 0);
         g.lock();
         g.setColor(color);
         g.fillRect(0, 0, W, H);
@@ -539,12 +638,14 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.unlock();
     }
 
-    public void drawBattle (String message1, String message2, String message3, String message4) {
-        int color = (party[0].HP != 0) ? Color.rgb(0, 0, 0) : Color.rgb(255, 0, 0);
+    public void drawBattle (String message1, String message2, String message3, String message4, int target) {
+        boolean isdestruction = true;
+        for (int i = 0; i < party.length; i++) if (party[i].HP != 0) isdestruction = false;
+        int color = !isdestruction ? Color.rgb(0, 0, 0) : Color.rgb(255, 0, 0);
         g.lock();
         g.setColor(color);
         g.fillRect(0, 0, W, H);
-        battleStatus();
+        battleStatus(target);
         g.drawMonsterInBattle(bmpmonster[enemy[0].MONSTERNUMBER]
                 , W / 2 - (bmpmonster[enemy[0].MONSTERNUMBER].getWidth()) / 2
                 , H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() + 80);
@@ -563,12 +664,14 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.unlock();
     }
 
-    public void showSkill (String message1, String message2, String message3, String message4) {
-        int color = (party[0].HP != 0) ? Color.rgb(0, 0, 0) : Color.rgb(255, 0, 0);
+    public void showSkill (String message1, String message2, String message3, String message4, int target) {
+        boolean isdestruction = true;
+        for (int i = 0; i < party.length; i++) if (party[i].HP != 0) isdestruction = false;
+        int color = !isdestruction ? Color.rgb(0, 0, 0) : Color.rgb(255, 0, 0);
         g.lock();
         g.setColor(color);
         g.fillRect(0, 0, W, H);
-        battleStatus();
+        battleStatus(target);
         g.drawMonsterInBattle(bmpmonster[enemy[0].MONSTERNUMBER]
                 , W / 2 - (bmpmonster[enemy[0].MONSTERNUMBER].getWidth()) / 2
                 , H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() + 80);
@@ -614,7 +717,7 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
             g.setColor(Color.rgb(231, 232, 226));
             g.fillRect(W - 130, H - 50, 120, 40);
             g.setColor(Color.rgb(0, 0, 0));
-            g.drawText("表示", W - 100, H - 25);
+            g.drawText("   表示", W - 100, H - 25);
         }
         g.setColor(Color.rgb(231, 232, 226));
         g.fillRect(W - 130, 10, 120, 40);   //金表示
@@ -624,7 +727,27 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
 
     public void battleStatus() {
         for (int i = 0; i < party.length; i++) {
-            int color = (party[i].HP != 0) ? Color.rgb(231, 232, 226) : Color.rgb(255, 0, 0);    //淡黄色or赤
+            int color = (party[i].HP != 0) ? Color.rgb(231, 232, 226) : Color.rgb(255, 0, 0);
+            g.setColor(color);
+            g.fillRect(20+186*i, 15, 185, 80);     //味方のステータス表示
+
+            g.setColor(Color.rgb(0, 0, 0));   //黒
+            g.setTextSize(18);
+            g.drawText(party[i].NAME + " Lv." + party[i].LV, 30+186*i, 20 - (int) g.getFontMetrics().top);
+            g.drawText("HP  " + party[i].HP + "/" + party[i].MAXHP[party[i].LV], 30+186*i, 20 - (int) g.getFontMetrics().top * 2 + 5);
+            g.drawText("SP  " + party[i].SP + "/" + party[i].MAXSP[party[i].LV], 30+186*i, 20 - (int) g.getFontMetrics().top * 3 + 8);
+        }
+    }
+
+    public void battleStatus(int target) {
+        for (int i = 0; i < party.length; i++) {
+            int color;
+            if (i!=target) {
+                color = (party[i].HP != 0) ? Color.rgb(231, 232, 226) : Color.rgb(255, 0, 0);
+            }
+            else {
+                color = (party[i].HP != 0) ? Color.rgb(255, 255, 0) : Color.rgb(255, 0, 0);
+            }
             g.setColor(color);
             g.fillRect(20+186*i, 15, 185, 80);     //味方のステータス表示
 

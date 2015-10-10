@@ -83,7 +83,7 @@ public class Graphics {
         int w = bitmap.getWidth();
         int h = bitmap.getHeight();
         Rect src = new Rect(0, 0, w, h);
-        Rect dst = new Rect(x, y, x+w, y+h);
+        Rect dst = new Rect(x, y, x+w/2, y+h/2);
         canvas.drawBitmap(bitmap, src, dst, null);
     }
 
