@@ -2,9 +2,12 @@ package Monster.monster;
 
 import Monster.Monster;
 
-public class Mash extends Monster {
+/**
+ * Created by seikenkiyosu on 15/10/11.
+ */
+public class Circusboy extends Monster {
     private final int maxlv = 5;
-    private String name = "マッシュ";	//名前
+    private String name = "サーカスボーイ";	//名前
     private int
             maxHP[]      = {0,  3,  6,  9, 12, 15},	//最大HP
             maxSP[]      = {0,  0,  1,  1,  2,  2},	//最大SP
@@ -18,7 +21,7 @@ public class Mash extends Monster {
             skill[]      = {0},		//レベルごとに覚えるスキル
             lvforskill[] = {0};		//そのスキルを覚えるレベル
 
-    public Mash(int monsternumber, int level) {
+    public Circusboy(int monsternumber, int level) {
         MONSTERNUMBER = monsternumber;
         NAME = name;
         MAXLV = maxlv;

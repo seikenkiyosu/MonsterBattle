@@ -1,13 +1,18 @@
 package Monster;
 
+import Monster.monster.Circusboy;
 import Monster.monster.Darkmash;
+import Monster.monster.Dekamash;
+import Monster.monster.Eggman;
+import Monster.monster.Makaimash;
 import Monster.monster.Mash;
 import Monster.monster.Metalmash;
+import Monster.monster.Shibiremash;
 import Monster.monster.Togemash;
 
 public class Monster {
     //全モンスターの数
-    public static final int MONSTERNUM = 4;
+    public static final int MONSTERNUM = 9;
 
     //モンスターナンバー
     public int MONSTERNUMBER;
@@ -56,6 +61,21 @@ public class Monster {
             case 4:
                 Metalmash metalmash = new Metalmash(monsternumber, level);
                 return metalmash;
+            case 5:
+                Shibiremash shibiremash = new Shibiremash(monsternumber, level);
+                return shibiremash;
+            case 6:
+                Makaimash makaimash = new Makaimash(monsternumber, level);
+                return makaimash;
+            case 7:
+                Dekamash dekamash = new Dekamash(monsternumber, level);
+                return dekamash;
+            case 8:
+                Eggman eggman = new Eggman(monsternumber, level);
+                return eggman;
+            case 9:
+                Circusboy circusboy = new Circusboy(monsternumber, level);
+                return circusboy;
             default:
         }
         return null;

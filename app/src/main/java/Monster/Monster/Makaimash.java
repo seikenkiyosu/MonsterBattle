@@ -2,7 +2,10 @@ package Monster.monster;
 
 import Monster.Monster;
 
-public class Mash extends Monster {
+/**
+ * Created by seikenkiyosu on 15/10/11.
+ */
+public class Makaimash  extends Monster {
     private final int maxlv = 5;
     private String name = "マッシュ";	//名前
     private int
@@ -18,7 +21,7 @@ public class Mash extends Monster {
             skill[]      = {0},		//レベルごとに覚えるスキル
             lvforskill[] = {0};		//そのスキルを覚えるレベル
 
-    public Mash(int monsternumber, int level) {
+    public Makaimash(int monsternumber, int level) {
         MONSTERNUMBER = monsternumber;
         NAME = name;
         MAXLV = maxlv;

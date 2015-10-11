@@ -36,17 +36,21 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
 
     //key constant
     private final static int
-        KEY_NONE   = -1,
-        KEY_LEFT   = 0,
-        KEY_RIGHT  = 1,
-        KEY_UP     = 2,
-        KEY_DOWN   = 3,
-        KEY_1      = 4,
-        KEY_2      = 5,
-        KEY_3      = 6,
-        KEY_4      = 7,
-        KEY_REDO   = 8,
-        KEY_SELECT = 9;
+        KEY_NONE     = -1,
+        KEY_LEFT     = 0,
+        KEY_RIGHT    = 1,
+        KEY_UP       = 2,
+        KEY_DOWN     = 3,
+        KEY_1        = 4,
+        KEY_2        = 5,
+        KEY_3        = 6,
+        KEY_4        = 7,
+        KEY_REDO     = 8,
+        KEY_MONSTER1 = 9,
+        KEY_MONSTER2 = 10,
+        KEY_MONSTER3 = 11,
+        KEY_MONSTER4 = 12,
+        KEY_SELECT   = 13;
 
     private boolean isdefence[];
     private boolean isskill = false;
@@ -258,10 +262,11 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                 //モンスター出現
                 case S_APPEAR:
                     //なにが出てきたか
-                    enemy = new Monster[3];
-                    enemy[0] = Monster.MonsterOutput(3, 1);
-                    enemy[1] = Monster.MonsterOutput(2, 1);
-                    enemy[2] = Monster.MonsterOutput(1, 1);
+                    enemy = new Monster[4];
+                    enemy[0] = Monster.MonsterOutput(7, 1);
+                    enemy[1] = Monster.MonsterOutput(5, 1);
+                    enemy[2] = Monster.MonsterOutput(8, 1);
+                    enemy[3] = Monster.MonsterOutput(9, 1);
 
                     //戦闘前のフラッシュ
                     isinbattle = true;  //バトルスタート
@@ -362,6 +367,21 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                     while (init == -1) {
                         if (key == KEY_1) {
                             init = S_ATTACK;
+
+                            //誰にする攻撃かを選ばせる
+//                            enemytarget = -1;
+//                            while (enemytarget == -1) {
+//                                     if (key == KEY_MONSTER1 && enemy[0].HP > 0) choice = party[partytarget].SKILL[0];
+//                                else if (key == KEY_MONSTER2 && enemy[1].HP > 0) choice = party[partytarget].SKILL[1];
+//                                else if (key == KEY_MONSTER3 && enemy[2].HP > 0) choice = party[partytarget].SKILL[2];
+//                                else if (key == KEY_MONSTER4 && enemy[3].HP > 0) choice = party[partytarget].SKILL[3];
+//                                else if (key == KEY_REDO) {
+//                                    init = S_COMMAND;          //SP不足はコマンドからやり直し
+//                                    break;
+//                                }
+//                                sleep(100);
+//                            }
+
                         }
                         else if (key == KEY_2) {
                             isdefence[partytarget] = true;
@@ -370,6 +390,8 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                         else if (key == KEY_3) {
                             isskill = true;
                             init = S_ATTACK;
+                            //誰にする攻撃かを選ばせる
+
                         }
                         else if (key == KEY_4) {
                             init = S_ESCAPE;
@@ -494,7 +516,7 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                 case S_DEFENCE:
                     //message
                     if (enemy[enemytarget].ESCAPEPERCENT <= rand(100)) {
-                        drawBattle(enemy[enemytarget].NAME + "の攻撃");
+                        drawBattle("相手の" + enemy[enemytarget].NAME + "の攻撃");
                         waitSelect();
                         if (rand(100) <= 90) {
                             //flush
@@ -598,9 +620,30 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.fillRect(0, 0, W, H);
         battleStatus();
         if (visible) {
-            g.drawMonsterInBattle(bmpmonster[enemy[0].MONSTERNUMBER],
-                    W / 2 - (bmpmonster[enemy[0].MONSTERNUMBER].getWidth()) / 2,
-                    H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() + 80);
+            for (int i = 0; i < enemy.length; i++)
+                if(enemy[i].HP > 0)
+                switch (enemy.length) {
+                case 1:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                W/2 - (bmpmonster[enemy[i].MONSTERNUMBER].getWidth())/6,
+                                H/2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight()/6 - 30);
+                    break;
+                case 2:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                220 + (bmpmonster[enemy[i].MONSTERNUMBER].getWidth() * i),
+                                H/2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight()/6 - 30);
+                    break;
+                case 3:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                130 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth()-30) * i),
+                                H/2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight()/6 - 30);
+                    break;
+                case 4:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                70 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth()-60) * i),
+                                H/2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight()/6 - 30);
+                    break;
+            }
         }
         g.setColor(Color.rgb(255, 255, 255));
         g.fillRect((W - 504) / 2, H - 122, 504, 104);
@@ -622,9 +665,30 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.fillRect(0, 0, W, H);
         battleStatus();
         if (visible) {
-            g.drawMonsterInBattle(bmpmonster[enemy[0].MONSTERNUMBER]
-                    , W / 2 - (bmpmonster[enemy[0].MONSTERNUMBER].getWidth()) / 2
-                    , H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() + 80);
+            for (int i = 0; i < enemy.length; i++)
+                if (enemy[i].HP > 0)
+                    switch (enemy.length) {
+                        case 1:
+                            g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                    W / 2 - (bmpmonster[enemy[i].MONSTERNUMBER].getWidth()) / 6,
+                                    H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                            break;
+                        case 2:
+                            g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                    220 + (bmpmonster[enemy[i].MONSTERNUMBER].getWidth() * i),
+                                    H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                            break;
+                        case 3:
+                            g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                    130 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 30) * i),
+                                    H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                            break;
+                        case 4:
+                            g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                    70 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 60) * i),
+                                    H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                            break;
+                    }
         }
         g.setColor(Color.rgb(255, 255, 255));
         g.fillRect((W - 504) / 2, H - 122, 504, 104);
@@ -646,9 +710,31 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.setColor(color);
         g.fillRect(0, 0, W, H);
         battleStatus(target);
-        g.drawMonsterInBattle(bmpmonster[enemy[0].MONSTERNUMBER]
-                , W / 2 - (bmpmonster[enemy[0].MONSTERNUMBER].getWidth()) / 2
-                , H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() + 80);
+        for (int i = 0; i < enemy.length; i++) {
+            if (enemy[i].HP > 0)
+                switch (enemy.length) {
+                    case 1:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                W / 2 - (bmpmonster[enemy[i].MONSTERNUMBER].getWidth()) / 6,
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                        break;
+                    case 2:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                220 + (bmpmonster[enemy[i].MONSTERNUMBER].getWidth() * i),
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                        break;
+                    case 3:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                130 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 30) * i),
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                        break;
+                    case 4:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                70 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 60) * i),
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                        break;
+                }
+        }
 
         g.setColor(Color.rgb(255, 255, 255));
         g.fillRect((W - 504) / 2, H - 122, 504, 104);
@@ -672,9 +758,30 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.setColor(color);
         g.fillRect(0, 0, W, H);
         battleStatus(target);
-        g.drawMonsterInBattle(bmpmonster[enemy[0].MONSTERNUMBER]
-                , W / 2 - (bmpmonster[enemy[0].MONSTERNUMBER].getWidth()) / 2
-                , H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() + 80);
+        for (int i = 0; i < enemy.length; i++)
+            if (enemy[i].HP > 0)
+                switch (enemy.length) {
+                    case 1:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                W / 2 - (bmpmonster[enemy[i].MONSTERNUMBER].getWidth()) / 6,
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                        break;
+                    case 2:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                220 + (bmpmonster[enemy[i].MONSTERNUMBER].getWidth() * i),
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                        break;
+                    case 3:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                130 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 30) * i),
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                        break;
+                    case 4:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                70 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 60) * i),
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                        break;
+                }
 
         g.setColor(Color.rgb(255, 255, 255));
         g.fillRect((W - 504) / 2, H - 122, 504, 104);
