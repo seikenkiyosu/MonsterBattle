@@ -47,7 +47,7 @@ public class Skill {
             attacker.SP -= sp;
             //エフェクト
             for (int i = 0; i < 20; i++) {
-                rpg.drawBattle(attacker.NAME + "の", "アンパンチ", i % 2 == 0);
+                rpg.drawBattleFlush(attacker.NAME + "のアンパンチ!", i % 2 == 0, rpg.enemytarget);
                 rpg.sleep(50);
             }
             //効果
@@ -55,7 +55,11 @@ public class Skill {
             rpg.drawBattle(defender.NAME + "に", damage + "ダメージ!", true);
             rpg.waitSelect();
             defender.HP -= damage;
-            if (defender.HP <= 0) defender.HP = 0;
+            if (defender.HP <= 0) {
+                rpg.drawBattle(defender.NAME + "を倒した");
+                rpg.waitSelect();
+                defender.HP = 0;
+            }
 
         } else {  //SPが足りない場合
             rpg.drawBattle("SPが足りない!");
@@ -71,7 +75,7 @@ public class Skill {
             attacker.SP -= sp;
             //エフェクト
             for (int i = 0; i < 20; i++) {
-                rpg.drawBattle(attacker.NAME + "の", "アンチョップ" , i % 2 == 0);
+                rpg.drawBattleFlush(attacker.NAME + "のアンチョップ!", i % 2 == 0, rpg.enemytarget);
                 rpg.sleep(50);
             }
             //効果
@@ -79,8 +83,11 @@ public class Skill {
             rpg.drawBattle(defender.NAME + "に", damage + "ダメージ!", true);
             rpg.waitSelect();
             defender.HP -= damage;
-            if (defender.HP <= 0) defender.HP = 0;
-
+            if (defender.HP <= 0) {
+                rpg.drawBattle(defender.NAME + "を倒した");
+                rpg.waitSelect();
+                defender.HP = 0;
+            }
         } else {  //SPが足りない場合
             rpg.drawBattle("SPが足りない!");
             rpg.init = rpg.S_COMMAND;
@@ -96,7 +103,7 @@ public class Skill {
             attacker.SP -= sp;
             //エフェクト
             for (int i = 0; i < 20; i++) {
-                rpg.drawBattle(attacker.NAME + "の", "キック!", i % 2 == 0);
+                rpg.drawBattleFlush(attacker.NAME + "のキック!", i % 2 == 0, rpg.enemytarget);
                 rpg.sleep(50);
             }
             //効果
@@ -104,8 +111,11 @@ public class Skill {
             rpg.drawBattle(defender.NAME + "に", damage + "ダメージ!", true);
             rpg.waitSelect();
             defender.HP -= damage;
-            if (defender.HP <= 0) defender.HP = 0;
-
+            if (defender.HP <= 0) {
+                rpg.drawBattle(defender.NAME + "を倒した");
+                rpg.waitSelect();
+                defender.HP = 0;
+            }
         } else {  //SPが足りない場合
             rpg.drawBattle("SPが足りない!");
             rpg.init = rpg.S_COMMAND;
@@ -121,7 +131,7 @@ public class Skill {
             attacker.SP -= sp;
             //エフェクト
             for (int i = 0; i < 20; i++) {
-                rpg.drawBattle(attacker.NAME + "の", "アンキック!", i % 2 == 0);
+                rpg.drawBattleFlush(attacker.NAME + "のアンキック!", i % 2 == 0, rpg.enemytarget);
                 rpg.sleep(50);
             }
             //効果
@@ -129,8 +139,11 @@ public class Skill {
             rpg.drawBattle(defender.NAME + "に", damage + "ダメージを与えた", true);
             rpg.waitSelect();
             defender.HP -= damage;
-            if (defender.HP <= 0) defender.HP = 0;
-
+            if (defender.HP <= 0) {
+                rpg.drawBattle(defender.NAME + "を倒した");
+                rpg.waitSelect();
+                defender.HP = 0;
+            }
         } else {  //SPが足りない場合
             rpg.drawBattle("SPが足りない!");
             rpg.init = rpg.S_COMMAND;
@@ -145,7 +158,7 @@ public class Skill {
             attacker.SP -= sp;
             //エフェクト
             for (int i = 0; i < 20; i++) {
-                rpg.drawBattle(attacker.NAME + "の", "はかいこうせん!", i % 2 == 0);
+                rpg.drawBattleFlush(attacker.NAME + "のはかいこうせん!", i % 2 == 0, rpg.enemytarget);
                 rpg.sleep(50);
             }
             //効果
@@ -153,8 +166,11 @@ public class Skill {
             rpg.drawBattle(defender.NAME + "に", damage + "ダメージを与えた", true);
             rpg.waitSelect();
             defender.HP -= damage;
-            if (defender.HP <= 0) defender.HP = 0;
-
+            if (defender.HP <= 0) {
+                rpg.drawBattle(defender.NAME + "を倒した");
+                rpg.waitSelect();
+                defender.HP = 0;
+            }
         } else {  //SPが足りない場合
             rpg.drawBattle("SPが足りない!");
             rpg.init = rpg.S_COMMAND;
@@ -169,7 +185,7 @@ public class Skill {
             attacker.SP -= sp;
             //エフェクト
             for (int i = 0; i < 20; i++) {
-                rpg.drawBattle(attacker.NAME + "の", "ギガインパクト!", i % 2 == 0);
+                rpg.drawBattleFlush(attacker.NAME + "のギガインパクト!", i % 2 == 0, rpg.enemytarget);
                 rpg.sleep(50);
             }
             //効果
@@ -177,8 +193,11 @@ public class Skill {
             rpg.drawBattle(defender.NAME + "に", damage + "ダメージを与えた", true);
             rpg.waitSelect();
             defender.HP -= damage;
-            if (defender.HP <= 0) defender.HP = 0;
-
+            if (defender.HP <= 0) {
+                rpg.drawBattle(defender.NAME + "を倒した");
+                rpg.waitSelect();
+                defender.HP = 0;
+            }
         } else {  //SPが足りない場合
             rpg.drawBattle("SPが足りない!");
             rpg.init = rpg.S_COMMAND;

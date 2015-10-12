@@ -10,6 +10,7 @@ public class Metalmash extends Monster {
             maxSP[]    = {0,5},
             attack[]   = {0,5},
             defence[]  = {0,100},
+            tech[]       = {0,  0,  0,  0,  0,  0},
             speed[]    = {0,100},
             exp[]      = {0,5},
             dropexp[]  = {0,30},
@@ -28,23 +29,19 @@ public class Metalmash extends Monster {
         MAXSP = new int[MAXLV+1];
         ATTACK = new int[MAXLV+1];
         DEFENCE = new int[MAXLV+1];
+        TECH = new int[MAXLV+1];
         SPEED = new int[MAXLV+1];
         EXP = new int[MAXLV+1];
         DROPEXP = new int[MAXLV+1];
         DROPMAONEY = new int[MAXLV+1];
-        if (skill.length < 4) {
-            SKILL = new int[4];
-            LVFORSKILL = new int[4];
-        }
-        else {
-            SKILL = new int[MAXLV + 1];
-            LVFORSKILL = new int[MAXLV + 1];
-        }
+        SKILL = new int[4];
+        LVFORSKILL = new int[MAXLV+1];
         for (int i = 0; i <= MAXLV; i++) {
             MAXHP[i] = maxHP[i];
             MAXSP[i] = maxSP[i];
             ATTACK[i] = attack[i];
             DEFENCE[i] = defence[i];
+            TECH[i] = tech[i];
             SPEED[i] = speed[i];
             EXP[i] = exp[i];
             DROPEXP[i] = dropexp[i];

@@ -29,6 +29,7 @@ public class Monster {
         MAXSP[],
         ATTACK[],
         DEFENCE[],
+        TECH[],
         SPEED[],
         EXP[],   //次のレベルまでに必要な経験値
         DROPEXP[],   //倒したときに獲得する経験値

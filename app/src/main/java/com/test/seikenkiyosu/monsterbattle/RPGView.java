@@ -19,15 +19,16 @@ import Monster.*;
 public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
     //シーン定数
     public final static int
-        S_START      = 0,
-        S_MAP        = 1,
-        S_APPEAR     = 2,
-        S_TURNCHANGE = 3,
-        S_COMMAND    = 4,
-        S_ATTACK     = 5,
-        S_SKILL      = 6,
-        S_DEFENCE    = 7,
-        S_ESCAPE     = 8;
+        S_START       = 0,
+        S_MAP         = 1,
+        S_APPEAR      = 2,
+        S_TURNCHANGE  = 3,
+        S_COMMAND     = 4,
+        S_ATTACK      = 5,
+        S_SKILL       = 6,
+        S_DEFENCE     = 7,
+        S_ESCAPE      = 8,
+        S_ENEMYSELECT = 9;
 
     //the size of display
     private final static int
@@ -64,15 +65,15 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
     private int stage[];
 
     //味方モンスター
-    static Monster party[] = new Monster[4];  //味方
-    private int partytarget;    //アクションを起こしている味方
+    static Monster party[];  //味方
+    public int partytarget;    //アクションを起こしている味方
     private int
         positionX,
         positionY;
 
     //敵モンスター
-    static Monster enemy[] = new Monster[4];  //アクションを起こしている敵
-    private int enemytarget;
+    static Monster enemy[];  //アクションを起こしている敵
+    public int enemytarget;
 
     //マップ
     private int MAP[][];
@@ -84,6 +85,7 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
     public int            init = S_START;
     public int            scene;
     public int            key;
+    private Bitmap[]      bmpyusha;
     private Bitmap        bmparroykey;  //十字キーのためのビットマップ
     private Bitmap[]      bmpmaps;      //マップのためのビットマップ
     private Bitmap[]      bmpmonster;   //モンスターのためのビットマップ
@@ -95,15 +97,16 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
     public RPGView(Activity activity) {
         super(activity);
         //パーティ読み込み
+        party = new Monster[3];
         party[0] = Monster.MonsterOutput(1, 1);
-        party[1] = Monster.MonsterOutput(1, 1);
-        party[2] = Monster.MonsterOutput(1, 1);
-        party[3] = Monster.MonsterOutput(1, 3);
+        party[1] = Monster.MonsterOutput(4, 1);
+        party[2] = Monster.MonsterOutput(3, 1);
+//        party[3] = Monster.MonsterOutput(1, 1);
 
         //最初のステージ
         stage = new int[2];
         stage[0] = 1;
-        stage[1] = 2;
+        stage[1] = 1;
 
 
         //map読み込み
@@ -116,6 +119,8 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         }
 
         //bitmap読み込み
+        bmpyusha = new Bitmap[1];
+        bmpyusha[0] = readBitmap(activity, "yusha1");
         bmparroykey = readBitmap(activity, "arroykey");
         bmpmaps = new Bitmap[Field.MAPKINDNUM];
         bmpmonster = new Bitmap[Monster.MONSTERNUM+1];
@@ -194,27 +199,27 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                     boolean flag = false;
                     if (key == KEY_UP) {    //勇者の移動
                         if (0<=positionY-1) {
-                            if (MAP[positionY - 1][positionX] <= 2) {     //上
+                            if (MAP[positionY - 1][positionX] != 2) {     //上
                                 positionY--;
                                 flag = true;
                             }
                         }
                     } else if (key == KEY_DOWN) {
                         if (positionY+1<=MAP.length-1)
-                        if (MAP[positionY+1][positionX] <= 2) {      //下
+                        if (MAP[positionY+1][positionX] != 2) {      //下
                             positionY++;
                             flag = true;
                         }
                     } else if (key == KEY_LEFT) {   //左
                         if (0<=positionX-1) {
-                            if (MAP[positionY][positionX-1] <= 2) {
+                            if (MAP[positionY][positionX-1] != 2) {
                                 positionX--;
                                 flag = true;
                             }
                         }
                     } else if (key == KEY_RIGHT) {        //右
                         if (positionX+1 <= MAP[positionY].length-1) {
-                            if (MAP[positionY][positionX+1] <= 2) {
+                            if (MAP[positionY][positionX+1] != 2) {
                                 positionX++;
                                 flag = true;
                             }
@@ -224,7 +229,12 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                     //マップ上のイベント
                     if (flag) {
                         if (MAP[positionY][positionX] == 0 && rand(100) < 10) {     //モンスター出現
-                            int r = rand(100);
+                            //なにが出てきたか
+                            enemy = new Monster[4];
+                            enemy[0] = Monster.MonsterOutput(9, 1);
+                            enemy[1] = Monster.MonsterOutput(9, 1);
+                            enemy[2] = Monster.MonsterOutput(9, 1);
+                            enemy[3] = Monster.MonsterOutput(9, 1);
                             init = S_APPEAR;
                         } else if (MAP[positionY][positionX] == 1) {    //宿屋
                             for (int i = 0; i < party.length; i++) {
@@ -233,8 +243,11 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                                     party[i].SP = party[i].MAXSP[party[i].LV];
                                 }
                             }
-                        } else if (MAP[positionY][positionX] == 2) {    //ボス出現
-                            enemy[0] = Monster.MonsterOutput(3, 1);
+                        } else if (MAP[positionY][positionX] == 3) {    //ボス出現
+                            enemy = new Monster[3];
+                            enemy[0] = Monster.MonsterOutput(1, 1);
+                            enemy[1] = Monster.MonsterOutput(8, 5);
+                            enemy[2] = Monster.MonsterOutput(1, 1);
                             init = S_APPEAR;
                         }
                     }
@@ -244,30 +257,28 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                         g.lock();
                         for (int j = -3; j <= 3; j++) {
                             for (int i = -5; i <= 5; i++) {
-                                int idx = 3;
+                                int idx = 2;
                                 if (0 <= positionX+i && positionX+i < MAP[0].length && 0 <= positionY+j && positionY+j < MAP.length) {
                                     idx = MAP[positionY+j][positionX+i];    //フィールド内部を描画
                                 }
-                                g.drawBitmap(bmpmaps[idx], W/2-40+80*i, H/2-40+80*j);   //周りの木を描画
+                                if (idx < bmpmaps.length) {
+                                    g.drawBitmap(bmpmaps[idx], W / 2 - 40 + 80 * i, H / 2 - 40 + 80 * j);
+                                }
+                                else {
+                                    g.drawBitmap(bmpmaps[0], W / 2 - 40 + 80 * i, H / 2 - 40 + 80 * j);
+                                    g.drawMonsterInMap(bmpmonster[8], W / 2 - 40 + 80 * i, H / 2 - 40 + 80 * j);
+                                }
                             }
                         }
-                        g.drawMonsterInMap(bmpmonster[party[0].MONSTERNUMBER], W/2-40, H/2-40);
+                        g.drawMonsterInMap(bmpyusha[0], W/2-40, H/2-40);
                         g.drawBitmap(bmparroykey, W/2-40+80*(-4), H/2-40+80);       //マップ上に十字キー描画
                         mapStatus();
                         g.unlock();
-
                     }
                     break;
 
                 //モンスター出現
                 case S_APPEAR:
-                    //なにが出てきたか
-                    enemy = new Monster[4];
-                    enemy[0] = Monster.MonsterOutput(7, 1);
-                    enemy[1] = Monster.MonsterOutput(5, 1);
-                    enemy[2] = Monster.MonsterOutput(8, 1);
-                    enemy[3] = Monster.MonsterOutput(9, 1);
-
                     //戦闘前のフラッシュ
                     isinbattle = true;  //バトルスタート
                     sleep(300);
@@ -302,7 +313,7 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                         }
                         else {
                             speed[i] = enemy[i-party.length].SPEED[enemy[i-party.length].LV];
-                            order[i] = 10+(i-4);
+                            order[i] = 10+(i-party.length);
                         }
                     }
 
@@ -328,9 +339,9 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
 
                 //誰のターンかを決める（バトル中）
                 case S_TURNCHANGE :
-                    battleturn %= party.length+enemy.length;
                     if (isinbattle) {
                         while (true) {
+                            battleturn %= party.length+enemy.length;
                             if (order[battleturn] < 10) {   //味方
                                 partytarget = order[battleturn];
                                 init = S_COMMAND;
@@ -367,21 +378,7 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                     while (init == -1) {
                         if (key == KEY_1) {
                             init = S_ATTACK;
-
-                            //誰にする攻撃かを選ばせる
-//                            enemytarget = -1;
-//                            while (enemytarget == -1) {
-//                                     if (key == KEY_MONSTER1 && enemy[0].HP > 0) choice = party[partytarget].SKILL[0];
-//                                else if (key == KEY_MONSTER2 && enemy[1].HP > 0) choice = party[partytarget].SKILL[1];
-//                                else if (key == KEY_MONSTER3 && enemy[2].HP > 0) choice = party[partytarget].SKILL[2];
-//                                else if (key == KEY_MONSTER4 && enemy[3].HP > 0) choice = party[partytarget].SKILL[3];
-//                                else if (key == KEY_REDO) {
-//                                    init = S_COMMAND;          //SP不足はコマンドからやり直し
-//                                    break;
-//                                }
-//                                sleep(100);
-//                            }
-
+                            drawEnemySelect(partytarget);
                         }
                         else if (key == KEY_2) {
                             isdefence[partytarget] = true;
@@ -390,11 +387,18 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                         else if (key == KEY_3) {
                             isskill = true;
                             init = S_ATTACK;
-                            //誰にする攻撃かを選ばせる
-
                         }
                         else if (key == KEY_4) {
                             init = S_ESCAPE;
+                        }
+                        else if (key != KEY_NONE) {     //直接攻撃コマンド
+                            init = S_ATTACK;
+                            switch (key) {
+                                case KEY_MONSTER1 : if (enemy[0].HP > 0) { enemytarget = 0; break; }
+                                case KEY_MONSTER2 : if (enemy[1].HP > 0) { enemytarget = 1; break; }
+                                case KEY_MONSTER3 : if (enemy[2].HP > 0) { enemytarget = 2; break; }
+                                case KEY_MONSTER4 : if (enemy[3].HP > 0) { enemytarget = 3; break; }
+                            }
                         }
                         sleep(100);
                     }
@@ -408,7 +412,7 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                         if (rand(100) <= 90) {
                             //flush
                             for (int i = 0; i < 10; i++) {
-                                drawBattle(party[partytarget].NAME + "の攻撃!", i % 2 == 0);
+                                drawBattleFlush(party[partytarget].NAME + "の攻撃!", i%2 == 0, enemytarget);
                                 sleep(100);
                             }
 
@@ -430,7 +434,11 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
 
                             //calculate HP
                             enemy[enemytarget].HP -= damage;
-                            if (enemy[enemytarget].HP <= 0) enemy[enemytarget].HP = 0;
+                            if (enemy[enemytarget].HP <= 0) {
+                                enemy[enemytarget].HP = 0;
+                                drawBattle(enemy[enemytarget].NAME + "を倒した");
+                                waitSelect();
+                            }
                         } else {
                             drawBattle(enemy[enemytarget].NAME + "は回避した");
                             waitSelect();
@@ -456,6 +464,7 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                         }
                         if (key != KEY_REDO) {  //次のコマンド
                             scene = S_ATTACK;   //もとに戻す
+                            drawEnemySelect(partytarget);
                             Skill.Skillcast(this, choice, party[partytarget], enemy[enemytarget]);
                         }
                         isskill = false;
@@ -485,15 +494,16 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                                     party[i].GETEXP -= party[i].EXP[party[i].LV];
                                     party[i].LV++;
                                     party[i].HP = party[i].MAXHP[party[i].LV] * party[i].HP / party[i].MAXHP[party[i].LV - 1];    //体力回復(レベルアップ前のHPゲージを保つ計算)
-                                    party[i].SP = party[i].MAXSP[party[i].LV] * party[i].SP / party[i].MAXSP[party[i].LV - 1];    //SP回復
+                                    if (party[i].MAXSP[party[i].LV - 1] != 0) {
+                                        party[i].SP = party[i].MAXSP[party[i].LV] * party[i].SP / party[i].MAXSP[party[i].LV - 1];    //SP回復
+                                    }
+                                    else {
+                                        party[i].SP = party[i].MAXSP[party[i].LV];    //SP回復
+                                    }
                                     drawBattle(party[i].NAME + "は", "LV " + party[i].LV + " にアップした", false);
                                     waitSelect();
                                 }
 
-//                            if (party[0].LV != party[0].MAXLV) {
-//                                drawBattle("次のレベルアップまで  ", ("あと ") + (party[0].EXP[party[0].LV] - party[0].GETEXP) + (" 経験値"), false);
-//                                waitSelect();
-//                            }
                                 if (party[i].LV == party[i].MAXLV) {
                                     drawBattle(party[i].NAME, "はレベル最大に到達した", false);
                                     waitSelect();
@@ -620,31 +630,9 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.fillRect(0, 0, W, H);
         battleStatus();
         if (visible) {
-            for (int i = 0; i < enemy.length; i++)
-                if(enemy[i].HP > 0)
-                switch (enemy.length) {
-                case 1:
-                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                W/2 - (bmpmonster[enemy[i].MONSTERNUMBER].getWidth())/6,
-                                H/2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight()/6 - 30);
-                    break;
-                case 2:
-                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                220 + (bmpmonster[enemy[i].MONSTERNUMBER].getWidth() * i),
-                                H/2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight()/6 - 30);
-                    break;
-                case 3:
-                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                130 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth()-30) * i),
-                                H/2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight()/6 - 30);
-                    break;
-                case 4:
-                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                70 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth()-60) * i),
-                                H/2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight()/6 - 30);
-                    break;
-            }
+            drawEnemyImage();
         }
+        drawEnemyGage();
         g.setColor(Color.rgb(255, 255, 255));
         g.fillRect((W - 504) / 2, H - 122, 504, 104);
         g.setColor(color);
@@ -665,31 +653,9 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.fillRect(0, 0, W, H);
         battleStatus();
         if (visible) {
-            for (int i = 0; i < enemy.length; i++)
-                if (enemy[i].HP > 0)
-                    switch (enemy.length) {
-                        case 1:
-                            g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                    W / 2 - (bmpmonster[enemy[i].MONSTERNUMBER].getWidth()) / 6,
-                                    H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
-                            break;
-                        case 2:
-                            g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                    220 + (bmpmonster[enemy[i].MONSTERNUMBER].getWidth() * i),
-                                    H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
-                            break;
-                        case 3:
-                            g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                    130 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 30) * i),
-                                    H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
-                            break;
-                        case 4:
-                            g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                    70 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 60) * i),
-                                    H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
-                            break;
-                    }
+            drawEnemyImage();
         }
+        drawEnemyGage();
         g.setColor(Color.rgb(255, 255, 255));
         g.fillRect((W - 504) / 2, H - 122, 504, 104);
         g.setColor(color);
@@ -710,31 +676,8 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.setColor(color);
         g.fillRect(0, 0, W, H);
         battleStatus(target);
-        for (int i = 0; i < enemy.length; i++) {
-            if (enemy[i].HP > 0)
-                switch (enemy.length) {
-                    case 1:
-                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                W / 2 - (bmpmonster[enemy[i].MONSTERNUMBER].getWidth()) / 6,
-                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
-                        break;
-                    case 2:
-                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                220 + (bmpmonster[enemy[i].MONSTERNUMBER].getWidth() * i),
-                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
-                        break;
-                    case 3:
-                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                130 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 30) * i),
-                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
-                        break;
-                    case 4:
-                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                70 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 60) * i),
-                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
-                        break;
-                }
-        }
+        drawEnemyImage();
+        drawEnemyGage();
 
         g.setColor(Color.rgb(255, 255, 255));
         g.fillRect((W - 504) / 2, H - 122, 504, 104);
@@ -750,6 +693,32 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.unlock();
     }
 
+    public void drawBattleFlush(String message, boolean visible, int target) {
+        boolean isdestruction = true;
+        for (int i = 0; i < party.length; i++) if (party[i].HP != 0) isdestruction = false;
+        int color = !isdestruction ? Color.rgb(0, 0, 0) : Color.rgb(255, 0, 0);
+        g.lock();
+        g.setColor(color);
+        g.fillRect(0, 0, W, H);
+        battleStatus();
+        if (visible) {
+            drawEnemyImage(target);
+        }
+        else {
+            drawEnemyImage();
+        }
+        drawEnemyGage();
+        g.setColor(Color.rgb(255, 255, 255));
+        g.fillRect((W - 504) / 2, H - 122, 504, 104);
+        g.setColor(color);
+        g.fillRect((W - 500) / 2, H - 120, 500, 100);
+        g.setColor(Color.rgb(255, 255, 255));
+        g.setTextSize(32);
+
+        g.drawText(message, (W - 500) / 2 + 50, 370 - (int) g.getFontMetrics().top);
+        g.unlock();
+    }
+
     public void showSkill (String message1, String message2, String message3, String message4, int target) {
         boolean isdestruction = true;
         for (int i = 0; i < party.length; i++) if (party[i].HP != 0) isdestruction = false;
@@ -757,31 +726,10 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.lock();
         g.setColor(color);
         g.fillRect(0, 0, W, H);
+
         battleStatus(target);
-        for (int i = 0; i < enemy.length; i++)
-            if (enemy[i].HP > 0)
-                switch (enemy.length) {
-                    case 1:
-                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                W / 2 - (bmpmonster[enemy[i].MONSTERNUMBER].getWidth()) / 6,
-                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
-                        break;
-                    case 2:
-                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                220 + (bmpmonster[enemy[i].MONSTERNUMBER].getWidth() * i),
-                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
-                        break;
-                    case 3:
-                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                130 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 30) * i),
-                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
-                        break;
-                    case 4:
-                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
-                                70 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 60) * i),
-                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
-                        break;
-                }
+        drawEnemyImage();
+        drawEnemyGage();
 
         g.setColor(Color.rgb(255, 255, 255));
         g.fillRect((W - 504) / 2, H - 122, 504, 104);
@@ -792,8 +740,8 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
 
         g.drawText(message1, (W - 500) / 2 + 50, 370 - (int) g.getFontMetrics().top);
         g.drawText(message2, (W - 500) / 2 + 240, 370 - (int) g.getFontMetrics().top);
-        g.drawText(message3, (W - 500) / 2 + 50, 370 - (int) g.getFontMetrics().top* 2 + 10);
-        g.drawText(message4, (W - 500) / 2 + 240, 370 - (int) g.getFontMetrics().top*2 +10);
+        g.drawText(message3, (W - 500) / 2 + 50, 370 - (int) g.getFontMetrics().top * 2 + 10);
+        g.drawText(message4, (W - 500) / 2 + 240, 370 - (int) g.getFontMetrics().top * 2 + 10);
 
         g.setTextSize(20);
         g.drawText("戻る", W/2+200, 370 - (int) g.getFontMetrics().top*2 +30);
@@ -801,8 +749,175 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
         g.unlock();
     }
 
+    public void drawEnemyImage () {
+        for (int i = 0; i < enemy.length; i++)
+            if (enemy[i].HP > 0)
+                switch (enemy.length) {
+                    case 1:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                W / 2 - (bmpmonster[enemy[i].MONSTERNUMBER].getWidth()) / 6,
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 10);
+                        break;
+                    case 2:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                220 + bmpmonster[enemy[i].MONSTERNUMBER].getWidth() * i,
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                        break;
+                    case 3:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                130 + (bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 30) * i,
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                        break;
+                    case 4:
+                        g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                70 + (bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 60) * i,
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                        break;
+                }
+    }
 
-    public void mapStatus() {
+    public void drawEnemyImage (int target) {
+        for (int i = 0; i < enemy.length; i++)
+            if (i != target) {
+                if (enemy[i].HP > 0)
+                    switch (enemy.length) {
+                        case 1:
+                            g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                    W / 2 - (bmpmonster[enemy[i].MONSTERNUMBER].getWidth()) / 6,
+                                    H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 10);
+                            break;
+                        case 2:
+                            g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                    220 + bmpmonster[enemy[i].MONSTERNUMBER].getWidth() * i,
+                                    H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                            break;
+                        case 3:
+                            g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                    130 + (bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 30) * i,
+                                    H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                            break;
+                        case 4:
+                            g.drawMonsterInBattle(bmpmonster[enemy[i].MONSTERNUMBER],
+                                    70 + (bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 60) * i,
+                                    H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 30);
+                            break;
+                    }
+            }
+    }
+
+    public void drawEnemyGage () {
+        for (int i = 0; i < enemy.length; i++)
+            if (enemy[i].HP > 0)
+                switch (enemy.length) {
+                    case 1:
+                        g.setColor(Color.WHITE);
+                        g.fillRect(W / 2 - (bmpmonster[enemy[i].MONSTERNUMBER].getWidth()) / 6 + 70 - 70 * (1 - 1 / enemy[i].MAXHP[enemy[i].LV]),
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 60,
+                                (50 + 70 * (1 - 1 / enemy[i].MAXHP[enemy[i].LV])), 10);
+                        g.setColor(Color.BLUE);
+                        g.fillRect(W / 2 - (bmpmonster[enemy[i].MONSTERNUMBER].getWidth()) / 6 + 70 - 70 * (1 - 1 / enemy[i].MAXHP[enemy[i].LV]),
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 60,
+                                (50 + 70 * (1 - 1 / enemy[i].MAXHP[enemy[i].LV])) * enemy[i].HP / enemy[i].MAXHP[enemy[i].LV], 10);
+                        break;
+                    case 2:
+                        g.setColor(Color.WHITE);
+                        g.fillRect(220 + (bmpmonster[enemy[i].MONSTERNUMBER].getWidth() * i),
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 60,
+                                (50 + 70 * (1 - 1 / enemy[i].MAXHP[enemy[i].LV])), 10);
+                        g.setColor(Color.BLUE);
+                        g.fillRect(220 + (bmpmonster[enemy[i].MONSTERNUMBER].getWidth() * i),
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 60,
+                                (50 + 70 * (1 - 1 / enemy[i].MAXHP[enemy[i].LV])) * enemy[i].HP / enemy[i].MAXHP[enemy[i].LV], 10);
+                        break;
+                    case 3:
+                        g.setColor(Color.WHITE);
+                        g.fillRect(130 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 30) * i),
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 60,
+                                (50 + 70 * (1 - 1 / enemy[i].MAXHP[enemy[i].LV])), 10);
+                        g.setColor(Color.BLUE);
+                        g.fillRect(130 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 30) * i),
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 60,
+                                (50 + 70 * (1 - 1 / enemy[i].MAXHP[enemy[i].LV])) * enemy[i].HP / enemy[i].MAXHP[enemy[i].LV], 10);
+                        break;
+                    case 4:
+                        g.setColor(Color.WHITE);
+                        g.fillRect(70 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 60) * i),
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 60,
+                                (50 + 70 * (1 - 1 / enemy[i].MAXHP[enemy[i].LV])), 10);
+                        g.setColor(Color.BLUE);
+                        g.fillRect(70 + ((bmpmonster[enemy[i].MONSTERNUMBER].getWidth() - 60) * i),
+                                H / 2 - bmpmonster[enemy[i].MONSTERNUMBER].getHeight() / 6 - 60,
+                                (50 + 70 * (1 - 1 / enemy[i].MAXHP[enemy[i].LV])) * enemy[i].HP / enemy[i].MAXHP[enemy[i].LV], 10);
+                        break;
+                }
+    }
+
+    private void drawEnemySelect (int target) {
+        if (enemy.length != 1) {
+            int enemyalive = 0, alivenum = 0;
+            for (int i = 0; i < enemy.length; i++) {
+                if (enemy[i].HP > 0) {
+                    alivenum++;
+                    enemyalive = i;
+                }
+            }
+            if (alivenum != 1) {
+                boolean isdestruction = true;
+                for (int i = 0; i < party.length; i++) if (party[i].HP != 0) isdestruction = false;
+                int color = !isdestruction ? Color.rgb(0, 0, 0) : Color.rgb(255, 0, 0);
+                g.lock();
+                g.setColor(color);
+                g.fillRect(0, 0, W, H);
+
+                battleStatus(target);
+                drawEnemyImage();
+                drawEnemyGage();
+
+                g.setColor(Color.rgb(255, 255, 255));
+                g.fillRect((W - 504) / 2, H - 122, 504, 104);
+                g.setColor(color);
+                g.fillRect((W - 500) / 2, H - 120, 500, 100);
+                g.setColor(Color.rgb(255, 255, 255));
+                g.setTextSize(26);
+
+                g.setColor(Color.WHITE);
+                g.setTextSize(32);
+                g.drawText("相手を選択してください", (W - 500) / 2 + 50, 370 - (int) g.getFontMetrics().top);
+                g.setTextSize(20);
+                g.drawText("戻る", W / 2 + 200, 370 - (int) g.getFontMetrics().top * 2 + 30);
+                g.unlock();
+                //誰にする攻撃かを選ばせる
+                int temp = scene;
+                scene = S_ENEMYSELECT;
+                enemytarget = -1;
+                while (enemytarget == -1) {
+                    if (key == KEY_MONSTER1 && enemy[0].HP > 0) {
+                        enemytarget = 0;
+                    } else if (key == KEY_MONSTER2 && enemy[1].HP > 0) {
+                        enemytarget = 1;
+                    } else if (key == KEY_MONSTER3 && enemy[2].HP > 0) {
+                        enemytarget = 2;
+                    } else if (key == KEY_MONSTER4 && enemy[3].HP > 0) {
+                        enemytarget = 3;
+                    } else if (key == KEY_REDO) {
+                        enemytarget = 0;
+                        init = S_COMMAND;          //SP不足はコマンドからやり直し
+                        break;
+                    }
+                    sleep(100);
+                }
+                scene = temp;
+            }
+            else {  //生き残りが１体
+                enemytarget = enemyalive;
+            }
+        }
+        else {  //敵が１体しかいないとき
+            enemytarget = 0;
+        }
+    }
+
+    private void mapStatus() {
         g.setTextSize(18);
         if (!isstatushide) {
             for (int i = 0; i < party.length; i++) {
@@ -887,6 +1002,55 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                     isstatushide = !isstatushide;
                 }
             }
+            else if (scene == S_ENEMYSELECT) {
+                if (W/2+200 < touchX && touchX < W/2+250 && H-50 < touchY && touchY < H-10) {
+                    key = KEY_REDO;
+                }
+                switch (enemy.length) {
+                    case 2:
+                        if (220  < touchX && touchX < 220 + bmpmonster[enemy[0].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER1;
+                        }
+                        else if (220 + bmpmonster[enemy[1].MONSTERNUMBER].getWidth() < touchX && touchX < 220 + bmpmonster[enemy[1].MONSTERNUMBER].getWidth() + bmpmonster[enemy[1].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[1].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[1].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER2;
+                        }
+                        break;
+                    case 3:
+                        if (130  < touchX && touchX < 130  + bmpmonster[enemy[0].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER1;
+                        }
+                        else if (130 + (bmpmonster[enemy[1].MONSTERNUMBER].getWidth() - 30) < touchX && touchX < 130 + (bmpmonster[enemy[1].MONSTERNUMBER].getWidth() - 30) + bmpmonster[enemy[1].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[1].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[1].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER2;
+                        }
+                        else if (130 + (bmpmonster[enemy[2].MONSTERNUMBER].getWidth() - 30) * 2 < touchX && touchX < 130 + (bmpmonster[enemy[2].MONSTERNUMBER].getWidth() - 30) * 2 + bmpmonster[enemy[2].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[2].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[2].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER3;
+                        }
+                        break;
+                    case 4:
+                        if (70 < touchX && touchX < 70 + bmpmonster[enemy[0].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER1;
+                        }
+                        else if (70 + (bmpmonster[enemy[1].MONSTERNUMBER].getWidth() - 60) < touchX && touchX < 70 + (bmpmonster[enemy[1].MONSTERNUMBER].getWidth() - 60) + bmpmonster[enemy[1].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[1].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[1].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER2;
+                        }
+                        else if (70 + (bmpmonster[enemy[2].MONSTERNUMBER].getWidth() - 60) * 2 < touchX && touchX < 70 + (bmpmonster[enemy[2].MONSTERNUMBER].getWidth() - 60) * 2 + bmpmonster[enemy[2].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[2].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[2].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER3;
+                        }
+                        else if (70 + (bmpmonster[enemy[3].MONSTERNUMBER].getWidth() - 60) * 3 < touchX && touchX < 70 + (bmpmonster[enemy[3].MONSTERNUMBER].getWidth() - 60) * 3 + bmpmonster[enemy[3].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[3].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[3].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER4;
+                        }
+                        break;
+                }
+            }
             else if (scene == S_APPEAR ||  scene == S_ATTACK || scene == S_DEFENCE || scene == S_ESCAPE) {
                 key = KEY_SELECT;
             }
@@ -902,6 +1066,51 @@ public class RPGView extends SurfaceView implements SurfaceHolder.Callback, Runn
                 }
                 else if (W/2 < touchX && touchX < W/2+250 && H-70 < touchY && touchY < H) {
                     key = KEY_4;
+                }
+                else
+                switch (enemy.length) {
+                    case 2:
+                        if (220  < touchX && touchX < 220 + bmpmonster[enemy[0].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER1;
+                        }
+                        else if (220 + bmpmonster[enemy[1].MONSTERNUMBER].getWidth() < touchX && touchX < 220 + bmpmonster[enemy[1].MONSTERNUMBER].getWidth() + bmpmonster[enemy[1].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[1].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[1].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER2;
+                        }
+                        break;
+                    case 3:
+                        if (130  < touchX && touchX < 130  + bmpmonster[enemy[0].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER1;
+                        }
+                        else if (130 + (bmpmonster[enemy[1].MONSTERNUMBER].getWidth() - 30) < touchX && touchX < 130 + (bmpmonster[enemy[1].MONSTERNUMBER].getWidth() - 30) + bmpmonster[enemy[1].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[1].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[1].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER2;
+                        }
+                        else if (130 + (bmpmonster[enemy[2].MONSTERNUMBER].getWidth() - 30) * 2 < touchX && touchX < 130 + (bmpmonster[enemy[2].MONSTERNUMBER].getWidth() - 30) * 2 + bmpmonster[enemy[2].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[2].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[2].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER3;
+                        }
+                        break;
+                    case 4:
+                        if (70 < touchX && touchX < 70 + bmpmonster[enemy[0].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[0].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER1;
+                        }
+                        else if (70 + (bmpmonster[enemy[1].MONSTERNUMBER].getWidth() - 60) < touchX && touchX < 70 + (bmpmonster[enemy[1].MONSTERNUMBER].getWidth() - 60) + bmpmonster[enemy[1].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[1].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[1].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER2;
+                        }
+                        else if (70 + (bmpmonster[enemy[2].MONSTERNUMBER].getWidth() - 60) * 2 < touchX && touchX < 70 + (bmpmonster[enemy[2].MONSTERNUMBER].getWidth() - 60) * 2 + bmpmonster[enemy[2].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[2].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[2].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER3;
+                        }
+                        else if (70 + (bmpmonster[enemy[3].MONSTERNUMBER].getWidth() - 60) * 3 < touchX && touchX < 70 + (bmpmonster[enemy[3].MONSTERNUMBER].getWidth() - 60) * 3 + bmpmonster[enemy[3].MONSTERNUMBER].getWidth()/2
+                                && H / 2 - bmpmonster[enemy[3].MONSTERNUMBER].getHeight() / 6 - 10 < touchY && touchY < H / 2 - bmpmonster[enemy[3].MONSTERNUMBER].getHeight() / 6 - 10 + bmpmonster[enemy[0].MONSTERNUMBER].getHeight()/2) {
+                            key = KEY_MONSTER4;
+                        }
+                        break;
                 }
             }
             else if (scene == S_SKILL) {
